@@ -1,0 +1,2 @@
+# 3D-DFN-waterseepage
+ dfnWorks is a parallelized computational suite to generate three-dimensional discrete fracture networks (DFN) . a three-dimensional Discrete fracture network (DFN) is among the most efficient and modern methods to simulate the random concept of the geometric properties of joints. An accurate definition of the fracture network (i.e., construction of a geometric model) is the most important step in the numerical modeling of the rock mass
