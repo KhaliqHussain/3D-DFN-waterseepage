@@ -1,0 +1,22 @@
+Equivalent Polygon diameter of tracelength
+
+Clear[mdiametr, ddiametr, diskdiametr];
+equidiametr[mtrace_, dtrace_, tracedistribute_] := 
+  Module[{mdiametr, vdiametr, ddiametr},
+   If[tracedistribute == lognormal,
+    mdiametr = ro2[(128*(mtrace)^3)/(3*\[Pi]^3*((mtrace)^2 + (dtrace)^2))];
+    ddiametr = Sqrt[
+     ro2[Abs[(1536*\[Pi]^2*((mtrace)^2 + (dtrace)^2)*(mtrace)^4 - 
+         128^2*(mtrace)^6)/(9*\[Pi]^6*((mtrace)^2 + (dtrace)^2)^2)]]]];
+   If[tracedistribute == nexponential,
+    mdiametr = ro2[(2*(mtrace))/\[Pi]];
+    ddiametr = Sqrt[ro2[mdiametr^2]]];
+   If[tracedistribute == gamma,
+    mdiametr = 
+     ro2[(64*(mtrace)^2 - 
+       3*\[Pi]^2*((mtrace)^2 + (dtrace)^2))/(8*\[Pi]*mtrace)];
+    ddiametr = Sqrt[
+     ro2[Abs[1/(8*\[Pi]*mtrace)^2 (64*(mtrace)^2 - 
+          3*\[Pi]^2*((mtrace)^2 + (dtrace)^2))*(3*\[Pi]^2*((mtrace)^2 + \
+(dtrace)^2) - 32*(mtrace)^2)]]]];
+   {mdiametr, ddiametr}];

@@ -1,0 +1,10 @@
+centreBlk
+
+Fonction permettant de calculer le centre de gravité d'un polygone:
+
+Clear[centreBlk];
+centreBlk[Polygon[ppp_]] := Apply[Plus, Drop[ppp, -1]]/(Length[ppp] - 1);
+centreBlk[listblk : {__Polygon}] := centreBlk /@ listblk;
+centreBlk[{_, qqp_Polygon, __} | {_, qqp_Polygon}] := centreBlk[qqp];
+centreBlk[listpol : {{_, _Polygon, __} ..} | {{_, _Polygon} ..}] := 
+  centreBlk /@ listpol;

@@ -1,0 +1,18 @@
+Geometry
+
+Round
+
+Clear[ro];
+ro = N[Round[#*1000000000]/1000000000] &;
+
+Clear[ro1];
+ro1 = N[Round[#*1000000]/1000000] &;
+
+Clear[ro2];
+ro2 = N[Round[#*1000]/1000] &;
+
+Clear[ro3];
+ro3 = N[Round[#*100]/100] &;
+
+Clear[ro4];
+ro4 = N[Round[#*10]/10] &;

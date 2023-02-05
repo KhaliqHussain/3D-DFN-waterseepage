@@ -1,0 +1,57 @@
+DFN Creator Fisher
+
+
+
+Clear[dfncreatfisher, inplans, plans, plans2, poiskhat, poiskhat2, poly2d, \
+shartpol, meantrace2, dtrace2, dfn3djset, pols]
+dfncreatfisher[cube : {{xmin_, xmax_}, {ymin_, ymax_}, {zmin_, zmax_}}, 
+   scanline : Line[{{x1_, y1_, z1_}, {x2_, y2_, z2_}}], 
+   shapefunc : {anglerate_, elong_}, transrate_, 
+   jset : {{mspacing_, dspacing_, spacingdistribution_}, {{mdip_, mdipdir_}, 
+      kfisher_}, {meantrace_, dtrace_, tracedistribute_}}] := 
+  Module[{inplans, plans, plans2, poiskhat, poiskhat2, poly2d, shartpol, 
+    delplans, meantrace2, dtrace2, pols, dfn3djset, inplanss, mdiametr, 
+    ddiametr},
+   inplanss = {};
+   {mdiametr, ddiametr} = equidiametr[meantrace, dtrace, tracedistribute];
+   If[mdip >= 50,
+    mdiametr == ro3[N[mdiametr*Cos[90 - mdip]]];
+    ddiametr == ro3[N[ddiametr*Cos[90 - mdip]]];];
+   If[mdip < 50,
+    mdiametr == ro3[N[mdiametr*Cos[mdip]]];
+    ddiametr == ro3[N[ddiametr*Cos[mdip]]];];
+   inplans = 
+    spacingline[
+     scanline, {mspacing, dspacing, spacingdistribution}, {mdip, mdipdir}, 
+     kfisher];
+   plans = regul2dpol[planbound[cube, inplans], inplans, mdip];
+   inplans = Delete[inplans, Position[plans, {}]];
+   plans = Delete[plans, Position[plans, {}]];
+   If[tracedistribute == nexponential,
+    poiskhat = epoislines[plans, mdiametr]];
+   If[tracedistribute == lognormal,
+    poiskhat = logpoislines[plans, {mdiametr, ddiametr}]];
+   If[tracedistribute == poison,
+    poiskhat = ppoislines[plans, mdiametr]];
+   If[tracedistribute == gamma,
+    poiskhat = gammapoislines[plans, {mdiametr, ddiametr}]];
+   If[tracedistribute == uniform,
+    poiskhat = upoislines[plans]];
+   poiskhat2 = Delete[poiskhat, Position[poiskhat, {}]];
+   plans2 = Delete[plans, Position[poiskhat, {}]];
+   poly2d = Table[cut[plans2[[i]], poiskhat2[[i]]], {i, Length[plans2]}];
+   shartpol = selecpol[poly2d, anglerate, elong];
+   delplans = Extract[plans, Position[poiskhat, {}]];
+   If[delplans != {},
+    For[i = 1, i < Length[delplans] + 1, i++,
+     pols = 
+      Insert[shartpol, {{delplans[[i]]}}, Position[poiskhat, {}][[i]]]],
+    pols = shartpol];
+   dfn3djset = makepol3d[pols, inplans, transrate, mdip];
+   inplanss = Append[inplanss, inplans];
+   {dfn3djset, inplanss}];
+dfncreatfisher[cube : {{_, _}, {_, _}, {_, _}}, 
+   scanline : Line[{{_, _, _}, {_, _, _}}], shapefunc : {_, _}, transrate_, 
+   groupjset : {{{_, _, _}, {{_, _}, _}, {_, _, _}} ...}] := 
+  Table[dfncreatfisher[cube, scanline, shapefunc, transrate, 
+    groupjset[[i]]], {i, Length[groupjset]}];

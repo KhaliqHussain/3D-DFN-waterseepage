@@ -1,0 +1,150 @@
+planbound
+
+Clear[x, y, z, posx, posy, posz, pointintersect, i, j, k, yintersect, 
+  xintersect, zintersect, xtagh, ytagh, ztagh, cube];
+Clear[planbound];
+planbound[cube : {{xmin_, xmax_}, {ymin_, ymax_}, {zmin_, zmax_}}, 
+  plan : {aa_, bb_, cc_, dd_}] := 
+ Module[{x, y, z, pointintersect, i, j, k, yintersect, xintersect, zintersect,
+    xtagh, ytagh, ztagh},
+  yaly = {{xmin, zmin}, {xmax, zmin}, {xmin, zmax}, {xmax, zmax}};
+  yalx = {{ymin, zmin}, {ymax, zmin}, {ymin, zmax}, {ymax, zmax}};
+  yalz = {{xmin, ymin}, {xmax, ymin}, {xmin, ymax}, {xmax, ymax}};
+  
+  If[aa == 0 || bb == 0 || cc == 0,
+   If[aa == 0 && bb == 0,
+    ztagh = dd/cc;
+    pointintersect = 
+     ro1[{{xmin, ymin, ztagh}, {xmin, ymax, ztagh}, {xmax, ymax, 
+        ztagh}, {xmax, ymin, ztagh}}]];
+   If[aa == 0 && cc == 0,
+    ytagh = dd/bb;
+    pointintersect = 
+     ro1[{{xmin, ytagh, zmin}, {xmin, ytagh, zmax}, {xmax, ytagh, 
+        zmax}, {xmax, ytagh, zmin}}]];
+   If[bb == 0 && cc == 0,
+    xtagh = dd/aa;
+    pointintersect = 
+     ro1[{{xtagh, ymin, zmin}, {xtagh, ymin, zmax}, {xtagh, ymax, 
+        zmax}, {xtagh, ymax, zmin}}]];
+   
+   If[aa != 0 && bb != 0 && cc == 0,
+    yintersect = {};
+    For[i = 1, i < Length[yaly] + 1, i++,
+     y = ((dd - aa yaly[[i, 1]])/bb);
+     ytagh = y;
+     If[ymin <= ytagh <= ymax, posy = {yaly[[i, 1]], ytagh, yaly[[i, 2]]}, 
+      posy = {}];
+     yintersect = Union[Append[yintersect, posy]]];
+    xintersect = {};
+    For[j = 1, j < Length[yalx] + 1, j++,
+     x = ((dd - bb yalx[[j, 1]])/aa);
+     xtagh = x;
+     If[xmin <= xtagh <= xmax, posx = {xtagh, yalx[[j, 1]], yalx[[j, 2]]}, 
+      posx = {}];
+     xintersect = Union[Append[xintersect, posx]]];
+    pointintersect = ro1[DeleteCases[Join[yintersect, xintersect], {}]]];
+   
+   If[aa != 0 && bb == 0 && cc != 0,
+    xintersect = {};
+    For[i = 1, i < Length[yalx] + 1, i++,
+     x = ((dd - cc yalx[[i, 2]])/aa);
+     xtagh = x;
+     If[xmin <= xtagh <= xmax, posx = {xtagh, yalx[[i, 1]], yalx[[i, 2]]}, 
+      posx = {}];
+     xintersect = Union[Append[xintersect, posx]]];
+    zintersect = {};
+    For[k = 1, k < Length[yalz] + 1, k++,
+     z = ((dd - aa yalz[[k, 1]])/cc);
+     ztagh = z;
+     If[zmin <= ztagh <= zmax, posz = {yalz[[k, 1]], yalz[[k, 2]], ztagh}, 
+      posz = {}];
+     zintersect = Union[Append[zintersect, posz]]];
+    pointintersect = ro1[DeleteCases[Join[xintersect, zintersect], {}]]];
+   
+   If[aa == 0 && bb != 0 && cc != 0,
+    yintersect = {};
+    For[i = 1, i < Length[yaly] + 1, i++,
+     y = ((dd - cc yaly[[i, 2]])/bb);
+     ytagh = y;
+     If[ymin <= ytagh <= ymax, posy = {yaly[[i, 1]], ytagh, yaly[[i, 2]]}, 
+      posy = {}];
+     yintersect = Union[Append[yintersect, posy]]];
+    zintersect = {};
+    For[k = 1, k < Length[yalz] + 1, k++,
+     z = ((dd - bb yalz[[k, 2]])/cc);
+     ztagh = z;
+     If[zmin <= ztagh <= zmax, posz = {yalz[[k, 1]], yalz[[k, 2]], ztagh}, 
+      posz = {}];
+     zintersect = Union[Append[zintersect, posz]]];
+    pointintersect = ro1[DeleteCases[Join[yintersect, zintersect], {}]]];
+   
+   pointintersect,
+   yintersect = {};
+   For[i = 1, i < Length[yaly] + 1, i++,
+    y = ((dd - cc yaly[[i, 2]] - aa yaly[[i, 1]])/bb);
+    ytagh = y;
+    If[ymin <= ytagh <= ymax, posy = {yaly[[i, 1]], ytagh, yaly[[i, 2]]}, 
+     posy = {}];
+    yintersect = Union[Append[yintersect, posy]]];
+   xintersect = {};
+   For[j = 1, j < Length[yalx] + 1, j++,
+    x = ((dd - cc yalx[[j, 2]] - bb yalx[[j, 1]])/aa);
+    xtagh = x;
+    If[xmin <= xtagh <= xmax, posx = {xtagh, yalx[[j, 1]], yalx[[j, 2]]}, 
+     posx = {}];
+    xintersect = Union[Append[xintersect, posx]]];
+   zintersect = {};
+   For[k = 1, k < Length[yalz] + 1, k++,
+    z = ((dd - aa yalz[[k, 1]] - bb yalz[[k, 2]])/cc);
+    ztagh = z;
+    If[zmin <= ztagh <= zmax, posz = {yalz[[k, 1]], yalz[[k, 2]], ztagh}, 
+     posz = {}];
+    zintersect = Union[Append[zintersect, posz]]];
+   pointintersect = 
+    ro1[DeleteCases[Join[yintersect, xintersect, zintersect], {}]]]
+  ]
+planbound[cube_, plans : {{_, _, _, _} ...}] :=
+  Map[planbound[cube, #] &, plans];
+planbound[cube_, planss : {{{_, _, _, _} ...} ...}] :=
+  Map[planbound[cube, #] &, planss];
+
+inplans[[7]]
+
+Part::partd: Part specification inplans[[7]] is longer than depth of object.
+
+inplans[[7]]
+
+0.`, 0.849`, 0.528`, 0.`
+
+inplans[[6]]
+
+Part::partd: Part specification inplans[[6]] is longer than depth of object.
+
+inplans[[6]]
+
+planbound[{{0, 60}, {0, 60}, {0, 60}}, inplans[[6]]]
+
+Part::partd: Part specification inplans[[6]] is longer than depth of object.
+
+planbound[{{0, 60}, {0, 60}, {0, 60}}, inplans[[6]]]
+
+planbound[{{0, 60}, {0, 60}, {0, 60}}, {0.`, 0.849`, 0.528`, 5}]
+
+{{0., 5.88928, 0.}, {60., 5.88928, 0.}, {0., 0., 9.4697}, {60., 0., 9.4697}}
+
+yintersect
+
+yintersect
+
+zintersect
+
+zintersect
+
+Join[yintersect, zintersect]
+
+Join[yintersect, zintersect]
+
+planbound[{{0, 60}, {0, 60}, {0, 60}}, {0.`, 0.849`, 0.528`, 0}]
+
+{{0., 0., 0.}, {60., 0., 0.}, {0., 0., 0.}, {60., 0., 0.}}

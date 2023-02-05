@@ -1,0 +1,4 @@
+MultiCut
+
+Clear[MultiCut];
+MultiCut[p_Polygon, multilist : {{__Line} ..}] := Fold[cut, p, multilist];

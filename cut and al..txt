@@ -1,0 +1,133 @@
+cut & al.
+
+Clear[angle];
+angle[v1i : {_, _}, v2i : {_, _}] := Module[{v1, v2, v2b, sign},
+   v1 = Append[v1i, 0];
+   v2 = Append[v2i, 0];
+   sign = Sign[Cross[v1, v2][[-1]]];
+   v2b = If[(v1 . v2) >= 0, v2, -v2];
+   sign*Re[ArcCos[(v1 . v2b)/(Sqrt[v1 . v1]*Sqrt[v2b . v2b])]]];
+angle[{_, _}, {0, 0}] := 0;
+angle[{_, _}, {0., 0.}] := 0;
+
+Clear[groupAngle, u, v, w];
+groupAngle[{u : {_, _}, v : {_, _}, ___, w : {_, _}}] := angle[w - u, v - u];
+
+Clear[groupTest];
+groupTest[gr : {{_, _} ..}] /; (ro1[groupAngle[gr]] >= 0) := True
+groupTest[x_] := False;
+
+Clear[severalDrops];
+severalDrops[dat_List, pos_List] := Module[{dat2, pos2},
+   dat2 = dat;
+   pos2 = pos;
+   Do[(dat2 = Drop[dat2, {pos2[[1]]}]; (pos2 = Drop[pos2, 1] - 1);), {Length[
+      pos]}];
+   dat2];
+
+Clear[SeveralReplace];
+SeveralReplace[sorce_List, news_List, newpos_List] := 
+  Module[{sorce2, news2, newpos2},
+   sorce2 = sorce;
+   news2 = news;
+   newpos2 = newpos;
+   Do[sorce2 = 
+     ReplacePart[sorce2, Hold[news2[[i]] /. {ll___} :> ll], newpos2[[i]]];
+    sorce2 = ReleaseHold[sorce2], {i, Length[newpos]}];
+   sorce2];
+
+Clear[UnsortedUnion];
+UnsortedUnion[x_] := 
+  Module[{fsort}, fsort[y_] := (fsort[y] = Sequence[]; y); fsort /@ x];
+
+standardcut est utilisé seulement quand il n'y a que 2 intersections entre le polygone et la ligne. On ramène ensuite toutes les situations à ce cas.
+Simplifié, par rapport à la version précédente compte tenu du fait qu'on sait, à l'avance, qu'il n'y a que 2 intersections valables.
+
+(*bords,pos,list,test,newpoints,newpoly,basepoly,basp*)
+
+Clear[standardCut];
+standardCut[Polygon[p : {{_, _} ..}], Line[l : {{_, _}, {_, _}}]] := Module[{},
+   basp = p;
+   bords = ro[Partition[p, 2, 1]];
+   bords2 = 
+    Map[{#[[1]], intersec[ro[l], {#[[1]], #[[2]]}], #[[2]]} &, bords];
+   (* si intersection dans un sommet, on l'affecte a l'un des bords, 
+   le premier *)
+   (* on conserve si a<= int < b ou si int=b on supprime *)
+   bords = Map[Replace[#, {x_, z_, z_} :> {x, {}, z}] &, bords2];
+   bords = Map[Replace[#, {x_, {}, z_} :> {x, z}] &, bords];
+   (* position des intersections *)
+   pos = Flatten[Position[bords, {_, _, _}]];
+   (* applatissement des bords *)
+   (* la liste n'est pas refermée sur le premier element *)
+   list = Flatten[Map[Drop[#, -1] &, bords], 1];
+   (* calcul des positions des intersections dans la liste aplatie *)
+   (* un bord sans inter = 2 positions prises *)
+   pos = Table[pos[[i]] + i, {i, 1, Length[pos]}];
+   newpoints = Take[list, pos];
+   (* test pour poser les seules points dans le polygon *)
+   If[Length[newpoints] < 2, basp = Append[UnsortedUnion[list], list[[1]]]];
+   (* test si nouveau polygones entre les intersections *)
+   test = groupTest[newpoints];
+   If[test == True,
+    newpoly = newpoints;
+    pos = pos + {1, -1};
+    basepoly = severalDrops[list, Apply[Range, pos]];
+    (* suppression des doublons inutiles dans le nouveau poly *)
+    (* qd les 2 premiers ou les 2 derniers sont identiques *)
+    newpoly = Replace[newpoly, {x_, x_, y__} :> {x, y}];
+    newpoly = Replace[newpoly, {x__, y_, y_} :> {x, y}];
+    (* fermeture des polys *)
+    newpoly = Polygon[Insert[newpoly, newpoly[[1]], -1]];
+    (* suppression des doublons inutiles dans le basepoly *)
+    basepoly = Replace[basepoly, {x___, y_, y_, z___} :> {x, y, z}];
+    basepoly = Polygon[Insert[basepoly, basepoly[[1]], -1]];
+    {newpoly, basepoly},
+    {Polygon[basp]}]];
+
+standardCut[p : {__Polygon}, l_Line] := Flatten[Map[standardCut[#, l] &, p]];
+standardCut[p_Polygon, l : {__Line}] := Fold[standardCut, p, l];
+standardCut[p : {__Polygon}, l : {__Line}] := 
+  Flatten[Map[standardCut[#, l] &, p]];
+
+Cut : fonction principale de découpage de n'importe quel polygone ou liste de polygones par n'importe quelle ligne ou liste de lignes. 
+
+Clear[cut];
+cut[p_Polygon, l_Line] /; PLIntersecCount[p, l] <= 2 := standardCut[p, l];
+cut[p_Polygon, l_Line] /; PLIntersecCount[p, l] > 2 := Module[{ints},
+   ints = PLIntersec[p, l];
+   newlines = Map[Line, Partition[ints, 2, 1]];
+   standardCut[p, newlines]];
+cut[p : {__Polygon}, l_Line] := Flatten[Map[cut[#, l] &, p]];
+cut[p_Polygon, l : {__Line}] := Fold[cut, p, l];
+cut[p : {__Polygon}, l : {__Line}] := Flatten[Map[cut[#, l] &, p]];
+(* Intersection des polygons et des subpolygons en respectant d'ordre des \
+famille numero 1 à famille numero n *)
+cut[p_Polygon, multilist : {{__Line} ..}] := Map[cut[p, #] &, multilist];
+(*cut[p_Polygon,multilist:{{__Line}..}]:=Fold[cut,p,multilist];*)
+
+cut[p : {__Polygon}, l_Line] := Flatten[Map[cut[#, l] &, p]];
+cut[p_Polygon, l : {__Line}] := Fold[cut, p, l];
+cut[p : {__Polygon}, l : {__Line}] := Flatten[Map[cut[#, l] &, p]];
+(* Intersection des polygons et des subpolygons en respectant d'ordre des \
+famille numero 1 à famille numero n *)
+cut[p_Polygon, multilist : {{__Line} ..}] := Fold[cut, p, multilist];
+
+Exapmle
+
+lin1 = Line[{{1, 0}, {1, .5}}];
+lin2 = Line[{{-1., -1.}, {1.5, 1.5}}];
+ShowBlocks2[p1 = {Polygon[{{2, 1}, {2, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}}]}, 
+ AspectRatio -> Automatic]
+
+\!\(\*
+GraphicsBox[{
+{Hue[0.47853679639505686`], 
+     PolygonBox[{{2, 1}, {2, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}}]}, 
+{GrayLevel[0], LineBox[{{2, 1}, {2, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}}]}},
+AspectRatio->Automatic,
+Frame->True]\)
+
+ShowBlocks2[ll]
+
+ShowBlocks2[ll]

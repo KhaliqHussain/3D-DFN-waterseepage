@@ -1,0 +1,38 @@
+Clear[superposQ];
+(* si superposition entre bord et line : pas d'intersection *)
+superposQ[l : {{x1_, y1_}, {x2_, y2_}}, 
+   b : {{x3_, y3_}, {x4_, y4_}}] := 
+  Module[{l13, l14, l23, l24, l12, l34},
+   l13 = Sqrt[(-x1 + x3)^2 + (-y1 + y3)^2];
+   l14 = Sqrt[(-x1 + x4)^2 + (-y1 + y4)^2];
+   l23 = Sqrt[(-x2 + x3)^2 + (-y2 + y3)^2];
+   l24 = Sqrt[(-x2 + x4)^2 + (-y2 + y4)^2];
+   l12 = ro2[Sqrt[(-x1 + x2)^2 + (-y1 + y2)^2]];
+   l34 = ro2[Sqrt[(-x3 + x4)^2 + (-y3 + y4)^2]];
+   If[Or[And[ro2[l13 + l23] == l12, ro2[l14 + l24] == l12], 
+     And[ro2[l13 + l14] == l34, ro2[l23 + l24] == l34]], True, False, 
+    False]];
+Clear[superposQ2];
+superposQ2[l : {{x1_, y1_}, {x2_, y2_}}, 
+   b : {{x3_, y3_}, {x4_, y4_}}] := 
+  Module[{l13, l14, l23, l24, l12, l34},
+   l13 = Sqrt[(-x1 + x3)^2 + (-y1 + y3)^2];
+   l14 = Sqrt[(-x1 + x4)^2 + (-y1 + y4)^2];
+   l23 = Sqrt[(-x2 + x3)^2 + (-y2 + y3)^2];
+   l24 = Sqrt[(-x2 + x4)^2 + (-y2 + y4)^2];
+   l12 = ro1[Sqrt[(-x1 + x2)^2 + (-y1 + y2)^2]];
+   l34 = ro1[Sqrt[(-x3 + x4)^2 + (-y3 + y4)^2]];
+   If[Or[And[ro1[l13 + l23] == l12, ro1[l14 + l24] == l12], 
+     And[ro1[l13 + l14] == l34, ro1[l23 + l24] == l34]], True, False, 
+    False]];
+
+Clear[superposQ3];
+(* le test de superposition deux bords *)
+superposQ3[l : {{x1_, y1_}, {x2_, y2_}}, 
+   b : {{x3_, y3_}, {x4_, y4_}}] := Module[{vl, vb, v1, v2},
+   vl = Append[l[[2]] - l[[1]], 0.];
+   vb = Append[b[[2]] - b[[1]], 0.];
+   v1 = Append[b[[1]] - l[[2]], 0.];
+   v2 = Append[b[[2]] - l[[1]], 0.];
+   If[And[ro2[Cross[vl, vb]] == {0., 0., 0.}, 
+     ro2[Cross[v1, v2]] == {0., 0., 0.}], True, False, False]];

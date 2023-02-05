@@ -1,0 +1,71 @@
+intersec
+
+Clear[ro];
+ro = N[Round[#*1000000000]/1000000000] &;
+
+Clear[ro1];
+ro1 = N[Round[#*1000000]/1000000] &;
+
+Clear[ro2];
+ro2 = N[Round[#*1000]/1000] &;
+
+Clear[generalintersec];
+(* si un point des bords est commun*)
+generalintersec[{{x1_, y1_}, {x2_, y2_}}, {{x3_, y3_}, {x4_, 
+      y4_}}] /; (inter2 = 
+      Flatten [Intersection[{{x1, y1}, {x2, y2}}, {{x3, y3}, {x4, 
+          y4}}]]) != {} := inter2;
+generalintersec[{{x1_, y1_}, {x2_, y2_}}, {{x3_, y3_}, {x4_, y4_}}] := 
+  Module[{den},
+   den = (x2 - x1) (y4 - y3) - (x4 - x3) (y2 - 
+        y1); {x1 (x4 (y3 - y2) + x3 (y2 - y4)) + 
+      x2 (x4 (y1 - y3) + x3 (y4 - y1)), (x2 y1 - x1 y2) (y4 - y3) - (y2 - 
+         y1) (x4 y3 - x3 y4)}/den];
+
+Clear[intersec];
+(* si ligne et bord sont paralleles : {} *)
+intersec[{{x1_, y1_}, {x2_, y2_}}, {{x3_, y3_}, {x4_, y4_}}] /; 
+   And[Length[Intersection[{{x1, y1}, {x2, y2}}, {{x3, y3}, {x4, y4}}]] != 1, 
+    ro[(x2 - x1) (y4 - y3) - (x4 - x3) (y2 - y1)] == 0] := {};
+(* sinon *)
+intersec[l : {{x1_, y1_}, {x2_, y2_}}, b : {{x3_, y3_}, {x4_, y4_}}] := 
+  Module[{x, y, test1, test2, test3, test4, t},
+   {x, y} = ro[generalintersec[l, b]];
+   \[Epsilon] = 0.1;
+   test1 = Min[t = ro[{x1, x2}]] <= x <= Max[t];
+   (*test1=(Min[t={x1,x2}]-\[Epsilon])\[LessEqual]x\[LessEqual](Max[
+   t]+\[Epsilon]);*)
+   (*test2=(Min[t={x3,x4}]-\[Epsilon])\[LessEqual]x\[LessEqual](Max[
+   t]+\[Epsilon]);*)
+   test2 = Min[t = ro[{x3, x4}]] <= x <= Max[t];
+   test3 = Min[t = ro[{y1, y2}]] <= y <= Max[t];
+   (*test3=(Min[t={y1,y2}]-\[Epsilon])\[LessEqual]y\[LessEqual](Max[
+   t]+\[Epsilon]);*)
+   test4 = Min[t = ro[{y3, y4}]] <= y <= Max[t];
+   (*test4=(Min[t={y3,y4}]-\[Epsilon])\[LessEqual]y\[LessEqual](Max[
+   t]+\[Epsilon]);*)
+   If[Union[{test1, test2, test3, test4}] == {True}, {x, y}, {}]];
+
+Clear[PLIntersec];
+PLIntersec[Polygon[p : {{_, _} ..}], Line[l : {{_, _}, {_, _}}]] := 
+ Module[{bords, ints},
+  bords = ro[Partition[p, 2, 1]];
+  ints = DeleteCases[Map[intersec[l, #] &, bords], {}, 1];
+  ints = Union[ints]]
+
+Clear[PLIntersecCount];
+PLIntersecCount[p_Polygon, l_Line] := Length[PLIntersec[p, l]];
+
+Clear[intersec2];
+(* si ligne et bord sont paralleles : {} *)
+intersec2[{{x1_, y1_}, {x2_, y2_}}, {{x3_, y3_}, {x4_, y4_}}] /; 
+   ro[(x2 - x1) (y4 - y3) - (x4 - x3) (y2 - y1)] == 0. := {};
+(* sinon *)
+intersec2[l : {{x1_, y1_}, {x2_, y2_}}, b : {{x3_, y3_}, {x4_, y4_}}] := 
+ Module[{x, y, test1, test2, test3, test4, t},
+  {x, y} = ro[generalintersec[l, b]];
+  test1 = Min[t = ro[{x1, x2}]] <= x <= Max[t];
+  test2 = Min[t = ro[{x3, x4}]] <= x <= Max[t];
+  test3 = Min[t = ro[{y1, y2}]] <= y <= Max[t];
+  test4 = Min[t = ro[{y3, y4}]] <= y <= Max[t];
+  If[Union[{test2, test4}] == {True}, {x, y}, {}]]

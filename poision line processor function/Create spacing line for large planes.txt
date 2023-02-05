@@ -1,0 +1,92 @@
+Create spacing line for large planes
+
+Clear[aa, bb, cc, scan, scanlen, dd, xyzha, abc, hhh, a, b, c, ppp];
+spacingline[
+  lin1 : Line[{{x1_, y1_, z1_}, {x2_, y2_, z2_}}], {mspacing_, dspacing_, 
+   spacingdistribution_}, {mdip_, mdipdir_}, kfisher_] := 
+ Module[{aa, bb, cc, scan, scanlen, dd, xyzha, abc, hhh, a, b, c, xyzha1, ppp},
+  aa = x2 - x1;
+  bb = y2 - y1;
+  cc = z2 - z1;
+  scanlen = ro2[zellength[lin1]];
+  If[scanlen != 0,
+   scan = 0;
+   ppp = {};
+   While[scan <= scanlen,
+    If[spacingdistribution == nexponential,
+     dd = ro2[RandomVariate[ExponentialDistribution[1/mspacing]]]];
+    If[spacingdistribution == lognormal,
+     dd = 
+      ro2[RandomVariate[
+        LogNormalDistribution[Log[(mspacing^2)/Sqrt[(dspacing + mspacing^2)]],
+          Sqrt[Log[(dspacing/(mspacing^2) + 1)]]]]]];
+    scan = scan + dd;
+    abc = RandomFisher[{mdip, mdipdir}, kfisher];
+    If[aa == 0 && bb == 0,
+     xyzha = {x1, y1, scan};
+     hhh = {a = abc[[1]], b = abc[[2]], c = abc[[3]], 
+       ro2[x1*abc[[1]] + y1*abc[[2]] + scan*abc[[3]]]};
+     ppp = Append[ppp, hhh]];
+    If[aa == 0 && cc == 0,
+      xyzha = {x1, scan, z1};
+      hhh = {a = abc[[1]], b = abc[[2]], c = abc[[3]], 
+        ro2[x1*abc[[1]] + scan*abc[[2]] + z1*abc[[3]]]};
+      ppp = Append[ppp, hhh]]
+     If[bb == 0 && cc == 0,
+      xyzha = {scan, y1, z1};
+      hhh = {a = abc[[1]], b = abc[[2]], c = abc[[3]], 
+        ro2[scan*abc[[1]] + y1*abc[[2]] + z1*abc[[3]]]};
+      ppp = Append[ppp, hhh]]
+     If[aa == 0 && bb != 0 && cc != 0,
+      xyzha = 
+       ReplaceAll[{x, y, z}, 
+        Solve[{(y - y1)/(y2 - y1) == (z - z1)/(z2 - z1), 
+          pointdist[lin1, {x, y, z}] == 
+           zellength[lin1], ((x - x1)^2 + (y - y1)^2 + (z - z1)^2)^.5 == 
+           scan}, {x, y, z}]];
+      If[xyzha != {x, y, x},
+       xyzha1 = Flatten[Union[ro2[xyzha]], 1];
+       hhh = {a = abc[[1]], b = abc[[2]], c = abc[[3]], 
+         xyzha1[[1]]*abc[[1]] + xyzha1[[2]]*abc[[2]] + 
+          xyzha1[[3]]*abc[[3]]}];
+      ppp = Append[ppp, hhh]]
+     If[aa != 0 && bb == 0 && cc != 0,
+      xyzha = 
+       ReplaceAll[{x, y, z}, 
+        Solve[{(x - x1)/(x2 - x1) == (z - z1)/(z2 - z1), 
+          pointdist[lin1, {x, y, z}] == 
+           zellength[lin1], ((x - x1)^2 + (y - y1)^2 + (z - z1)^2)^.5 == 
+           scan}, {x, y, z}]];
+      If[xyzha != {x, y, x},
+       xyzha1 = Flatten[Union[ro2[xyzha]], 1];
+       hhh = {a = abc[[1]], b = abc[[2]], c = abc[[3]], 
+         xyzha1[[1]]*abc[[1]] + xyzha1[[2]]*abc[[2]] + 
+          xyzha1[[3]]*abc[[3]]}];
+      ppp = Append[ppp, hhh]]
+     If[aa != 0 && bb != 0 && cc == 0,
+      xyzha = 
+       ReplaceAll[{x, y, z}, 
+        Solve[{(x - x1)/(x2 - x1) == (y - y1)/(y2 - y1), 
+          pointdist[lin1, {x, y, z}] == 
+           zellength[lin1], ((x - x1)^2 + (y - y1)^2 + (z - z1)^2)^.5 == 
+           scan}, {x, y, z}]];
+      If[xyzha != {x, y, x},
+       xyzha1 = Flatten[Union[ro2[xyzha]], 1];
+       hhh = {a = abc[[1]], b = abc[[2]], c = abc[[3]], 
+         xyzha1[[1]]*abc[[1]] + xyzha1[[2]]*abc[[2]] + 
+          xyzha1[[3]]*abc[[3]]}];
+      ppp = Append[ppp, hhh]]
+     If[aa != 0 && bb != 0 && cc != 0,
+      xyzha = 
+       ReplaceAll[{x, y, z}, 
+        Solve[{(x - x1)/(x2 - x1) == (z - z1)/(z2 - z1), 
+          pointdist[lin1, {x, y, z}] == 
+           zellength[lin1], ((x - x1)^2 + (y - y1)^2 + (z - z1)^2)^.5 == 
+           scan}, {x, y, z}]];
+      If[xyzha != {x, y, x},
+       xyzha1 = Flatten[Union[ro2[xyzha]], 1];
+       hhh = {a = abc[[1]], b = abc[[2]], c = abc[[3]], 
+         xyzha1[[1]]*abc[[1]] + xyzha1[[2]]*abc[[2]] + 
+          xyzha1[[3]]*abc[[3]]}];
+      ppp = Append[ppp, hhh]]], ppp = {}];
+  ppp]

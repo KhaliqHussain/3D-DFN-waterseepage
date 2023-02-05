@@ -1,0 +1,18 @@
+Length of edge
+
+Clear[jointlength, len, toolekhat, lines, grouplines, groupliness]
+zellength[lin1 : Line[{{x1_, y1_, z1_}, {x2_, y2_, z2_}}]] := 
+  Module[{len, toolekhat},
+   len = ((y2 - y1)^2 + (x2 - x1)^2 + (z2 - z1)^2)^.5;
+   toolekhat = len];
+zellength[
+   lines : {Line[{{_, _, _}, {_, _, _}}], Line[{{_, _, _}, {_, _, _}}] ...}] :=
+  Map[zellength[#] &, Flatten[lines]];
+zellength[
+   grouplines : {{Line[{{_, _, _}, {_, _, _}}], 
+       Line[{{_, _, _}, {_, _, _}}] ..} ..}] :=
+  Map[zellength[#] &, grouplines];
+zellength[
+  groupliness : {{{Line[{{_, _, _}, {_, _, _}}], 
+        Line[{{_, _, _}, {_, _, _}}] ..} ..} ..}] :=
+ Map[zellength[#] &, groupliness]

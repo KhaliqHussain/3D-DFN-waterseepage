@@ -1,0 +1,44 @@
+poly regulation
+
+Clear[posnegative, pospositive, pointneg1, pointneg, pointpos, pointzer, aa, 
+  bb, cc, dd, xys];
+Clear[regul2dpol];
+regul2dpol[pointintersect : {{_, _, _} ...}, plan : {aa_, bb_, cc_, dd_}, 
+   mdip_] := 
+  Module[{x1, y1, x2, y2, z1, z2, posnegative, pospositive, pointneg1, 
+    pointneg, pointpos, pointzer, xys, pol2d1, pol2d},
+   If[pointintersect != {},
+    If[mdip >= 50,
+     If[Abs[aa] >= Abs[bb],
+      xys = ro1[Union[Map[Take[#, {2, 3}] &, pointintersect]]];
+      {x1, y1} = First[xys];
+      {x2, y2} = Last[xys];
+      ];
+     If[Abs[bb] > Abs[aa],
+      xys = ro1[Union[Map[{First[#], Last[#]} &, pointintersect]]];
+      {x1, y1} = First[xys];
+      {x2, y2} = Last[xys];
+      ];
+     ,
+     xys = ro1[Map[Take[#, 2] &, Union[pointintersect]]];
+     {x1, y1} = First[xys];
+     {x2, y2} = Last[xys];];
+    alamat = 
+     ro1[Map[ xys[[#, 2]] - ((y2 - y1)/(x2 - x1))* 
+          xys[[#, 1]] + (((y2 - y1)/(x2 - x1))*x1 - y1) &, 
+       Range[Length[xys]]]];
+    posnegative = Position[ Negative /@ alamat, True];
+    pospositive = Position[ Positive /@ alamat, True];
+    pointneg1 = Extract[xys, posnegative];
+    pointneg = Sort[pointneg1, #1[[1]] > #2[[1]] &];
+    pointpos = Extract[xys, pospositive];
+    pointzer = Delete[xys, Join[posnegative, pospositive]];
+    pol2d1 = {pointzer[[1]], Union[pointpos], pointzer[[2]], pointneg, 
+      pointzer[[1]]};
+    pol2d = Polygon[Partition[Flatten[pol2d1], 2, 2]];
+    pol2d,
+    {}]];
+regul2dpol[pointintersects : {{{_, _, _} ...} ...}, 
+   plans : {{_, _, _, _} ...}, mdip_] := 
+  Table[regul2dpol[pointintersects[[i]], plans[[i]], mdip], {i, 
+    Length[plans]}];

@@ -1,0 +1,64 @@
+poisonlines-Uniform distance
+
+Clear[upoislines, dis, rdist, x, xx, y, yy, dd];
+upoislines[p : Polygon[{{_, _} ..}]] := 
+  Module[{dis, dd, rdis, xx, yy, teta, tetas, rdist, points, rdistance, alpha,
+     l1, lines},
+   dis = centreBlk[p];
+   rdistance = 
+    Max[Table[((dis[[1]] - p[[j, 1]])^2 + (dis[[2]] - p[[j, 2]])^2)^0.5, {j, 
+       Length[p]}]];
+   rdis = 0;
+   rdist = {};
+   points = {};
+   tetas = {};
+   lines = {};
+   While[rdis <= rdistance,
+    dd = ro2[RandomVariate[UniformDistribution[{-rdistance, rdistance}]]];
+    rdis = rdis + dd;
+    teta = RandomVariate[UniformDistribution[{0, 2 Pi}]]/Degree;
+    yy = dis[[2]] + ro2[rdis*Sin[teta Degree]];
+    xx = dis[[1]] + ro2[rdis*Cos[teta Degree]];
+    If[teta <= 90,
+     alpha = -(90 - teta);
+     l1 = 
+      Line[{{xx - 2 rdistance*Cos[alpha Degree], 
+         yy - 2 rdistance*Sin[alpha Degree]}, {xx + 
+          2 rdistance*Cos[alpha Degree], yy + 2 rdistance*Sin[alpha Degree]}}];
+     ];
+    If[90 < teta <= 180,
+     alpha = teta - 90;
+     l1 = 
+      Line[{{xx - 2 rdistance*Cos[alpha Degree], 
+         yy - 2 rdistance*Sin[alpha Degree]}, {xx + 
+          2 rdistance*Cos[alpha Degree], yy + 2 rdistance*Sin[alpha Degree]}}];
+     ];
+    If[180 < teta <= 270,
+     alpha = -(270 - teta);
+     l1 = 
+      Line[{{xx - 2 rdistance*Cos[alpha Degree], 
+         yy - 2 rdistance*Sin[alpha Degree]}, {xx + 
+          2 rdistance*Cos[alpha Degree], yy + 2 rdistance*Sin[alpha Degree]}}];
+     ];
+    If[270 < teta <= 360,
+     alpha = 90 - (360 - teta);
+     l1 = 
+      Line[{{xx - 2 rdistance*Cos[alpha Degree], 
+         yy - 2 rdistance*Sin[alpha Degree]}, {xx + 
+          2 rdistance*Cos[alpha Degree], yy + 2 rdistance*Sin[alpha Degree]}}];
+     ];
+    points = Append[points, {xx, yy}];
+    tetas = Append[tetas, alpha];
+    rdist = Append[rdist, rdis];
+    lines = Append[lines, l1];
+    ];
+   Drop[lines, -1]];
+upoislines[polpolys : {Polygon[{{__} ...}] ...}] := 
+ Map[upoislines[#] &, polpolys]
+
+
+Clear[nupoislines];
+nupoislines[n : _, p : Polygon[{{_, _} ..}]] := 
+  Module[{dis, rdis, xx, yy, teta, tetas, rdist, points, rdistance, alpha, l1,
+     lines},
+   Table[upoislines[p], {i, n}]];
